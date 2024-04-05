@@ -206,7 +206,7 @@ export const getOrdersController = async (req, res) => {
         console.log(error);
         res.status(500).send({
             success: false,
-            message: "Error WHile Geting Orders",
+            message: "Error While Getting Orders",
             error,
         });
     }
@@ -216,7 +216,7 @@ export const getAllOrdersController = async (req, res) => {
     try {
         const orders = await orderModel
             .find({})
-            .populate("products", "-photo")
+            .populate("products", "-image")
             .populate("buyer", "name")
             .sort({ createdAt: "-1" });
         res.json(orders);
@@ -224,7 +224,7 @@ export const getAllOrdersController = async (req, res) => {
         console.log(error);
         res.status(500).send({
             success: false,
-            message: "Error While Geting Orders",
+            message: "Error While Getting Orders",
             error,
         });
     }
