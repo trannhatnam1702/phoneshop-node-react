@@ -4,6 +4,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import axios from 'axios';
 import { useCart } from '../context/cart.js';
 import toast from 'react-hot-toast';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import './client.css';
 
 const ProductDetails = () => {
     const params = useParams();
@@ -11,6 +15,7 @@ const ProductDetails = () => {
     const [cart, setCart] = useCart();
     const [product, setProduct] = useState([]);
     const [relatedProducts, setRelatedProductss] = useState([]);
+    const [show3DModel,setShow3DModel] = useState(false);
 
     useEffect(() => {
         if (params?.slug) getProduct();
@@ -35,7 +40,86 @@ const ProductDetails = () => {
             console.log(error);
         }
     }
+        //Hàm tạo mô hình 3D
+        const load3DModel = () => {
+            if(show3DModel) {
+                const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer();
+            
+            renderer.setClearColor(0xffffff, 0.05);
+            renderer.setSize(1000, 600);
+        
+            const width = window.innerWidth;
+            const height = window.innerHeight;  
+            const loader = new GLTFLoader();
+    
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+    
+            const spotLight = new THREE.SpotLight(0xffffff, 0.5);
+            spotLight.position.set(6, 2 , 3);
+            spotLight.target.position.set(6, 1, 0);
+            scene.add(spotLight);
+            scene.add(spotLight.target);
+    
+            camera.position.set(0,0.5,1.5);
+            camera.lookAt(0,0,0);
+    
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.target.set(width, height, 30);
+            controls.zoom = 2;
+            controls.update();
 
+            loader.load('/iphone_14_pro_max.glb', function(gltf) {
+                const object = gltf.scene;
+                scene.add(object)
+    
+                const distanceToObject = camera.position.distanceTo(object.position);
+                const newDistance = distanceToObject * 0.3;
+                controls.target.copy(object.position);
+                camera.position.set(0, 0.1, newDistance);
+                camera.updateProjectionMatrix();
+            });
+            const popupContainer = document.getElementById('popup-container');
+            if (popupContainer) {
+                popupContainer.appendChild(renderer.domElement);
+            }
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+    
+            animate();
+            }
+        };
+        
+        useEffect(() => {
+            if (show3DModel) {
+                load3DModel();
+            }
+        }, [show3DModel]);
+    
+        const handleGoBack = () => {
+            navigate(-1);
+        };
+
+        const handleOpen3DModel = () => {
+            setShow3DModel(true); 
+            load3DModel();// Mở pop-up khi bấm vào nút "Watch 3D"
+        };
+
+        const handleClose3DModel = () => {
+            setShow3DModel(false); // Đóng pop-up khi cần
+            // Xóa canvas của mô hình 3D khỏi pop-up container
+            const canvasContainer = document.getElementById('canvas-container');
+            if (canvasContainer) {
+                canvasContainer.innerHTML = '';
+            }
+        };
+        
+        //Đóng 3D Model
     return (
         <Layout>
             {/* {JSON.stringify(category, null, 4)} */}
@@ -59,10 +143,21 @@ const ProductDetails = () => {
                                 );
                                 toast.success('Product added to Cart!');
                             }}>Add to cart</button>
+                              <button className="btn btn-secondary ms-1" onClick={handleOpen3DModel}>Watch 3D</button>
+                            {show3DModel && (
+                                <div className="popup-overlay" onClick={handleClose3DModel}>
+                                    <div className="popup" onClick={(e) => e.stopPropagation()}>
+                                        <div id="popup-container">
+                                            {/* {load3DModel()}; */}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <button class="btn btn-secondary ms-1" onClick={handleGoBack}>Back</button>
                         </div>
                     </div>
                 </div>
-
             </div>
             <div className='row container'>
                 <h6>Similar Products</h6>
@@ -85,6 +180,7 @@ const ProductDetails = () => {
                                         );
                                         toast.success('Product added to Cart!');
                                     }}>Add to cart</button>
+                                    
                                 </div>
                             </div>
                         </>

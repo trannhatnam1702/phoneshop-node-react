@@ -1,6 +1,6 @@
 import express from "express";
 import { isAdmin, requireSignIn } from "../middlewares/authMidw.js";
-import { brainTreePaymentController, braintreeTokenController, countProductController, createProductController, deleteProductController, getProductController, productCategoryController, productFiltersController, productImageController, productListController, relatedProductController, searchProductController, singleProductController, updateProductController } from "../controllers/productController.js";
+import { brainTreePaymentController, braintreeTokenController, countProductController, createProductController, deleteProductController, getProductController, productCategoryController, productFiltersController, productImage3DController, productImageController, productListController, relatedProductController, searchProductController, singleProductController, updateProductController} from "../controllers/productController.js";
 import formidable from 'express-formidable';
 
 

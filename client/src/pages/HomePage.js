@@ -152,7 +152,7 @@ const HomePage = () => {
                                         }}>
                                             Add to cart
                                         </button>
-                                    </div>
+                                        </div>
                                 </div>
                             </>
                         ))}

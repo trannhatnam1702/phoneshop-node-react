@@ -17,6 +17,7 @@ const CreateProduct = () => {
     const [price, setPrice] = useState('');
     const [quantity, setQuantity] = useState('');
     const [image, setImage] = useState('');
+    const [image3D, setImage3D] = useState('');
     const [shipping, setShipping] = useState('');
 
     const getAllCate = async () => {
@@ -45,6 +46,7 @@ const CreateProduct = () => {
             productData.append('quantity', quantity);
             productData.append('shipping', shipping);
             productData.append('image', image);
+            productData.append('image3D', image3D);
             productData.append('category', category);
             const { data } = axios.post(`${process.env.REACT_APP_API}/api/v1/product/create-product`, productData);
             if (data?.success) {
@@ -87,6 +89,19 @@ const CreateProduct = () => {
                                     {image && (
                                         <div className='text-center'>
                                             <img src={URL.createObjectURL(image)} height={'200px'} className='img img-responsive'></img>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className='mb-3'>
+                                    <label className='btn btn-outline-secondary col-md-12'>
+                                        {image3D ? image3D.name : 'Upload 3D Model'}
+                                        <input type='file' name='image3D' accept='/model/*' onChange={(e) => setImage3D(e.target.files[0])} hidden></input>
+                                    </label>
+                                </div>
+                                <div className='mb-3'>
+                                    {image3D && (
+                                        <div className='text-center'>
+                                            <p>Upload 3D Model: {image3D.name}</p>
                                         </div>
                                     )}
                                 </div>
