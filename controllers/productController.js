@@ -7,6 +7,7 @@ import fs from 'fs';
 import braintree from "braintree";
 import dotenv from "dotenv";
 import { modelNames } from 'mongoose';
+import path from 'path';
 
 dotenv.config();
 
@@ -44,14 +45,24 @@ export const createProductController = async (req, res) => {
         }
         //update file 3D model
         if (image3D) {
-            const uploadDir = 'uploads/';
-            const modelName = `${Date.now()}_${image3D.name}`;
-            const modelPath = path.join(uploadDir, modelName);
-            fs.writeFileSync(modelPath, fs.readFileSync(image3D.path));
+            // Tạo thư mục lưu trữ nếu chưa tồn tại
+            // const uploadDir = 'D:/phoneshop-node-react-main/uploads/3dmodels';// Đường dẫn tới thư mục lưu trữ
+            // if (!fs.existsSync(uploadDir)) {
+            //     fs.mkdirSync(uploadDir, { recursive: true });
+            // }
+            // // Tạo tên file mới
+            // const modelName = `${Date.now()}_${image3D.name}`;
+            // const modelPath = path.join(uploadDir, modelName);
+            // // Di chuyển file 3D vào thư mục lưu trữ
+            // fs.copyFileSync(image3D.path, modelPath);
+
+            // // Xóa tệp tạm sau khi đã sao chép
+            // fs.unlinkSync(image3D.path);
+            // Lưu đường dẫn đến file 3D model trong sản phẩm
             products.image3D.data = fs.readFileSync(image3D.path);
             products.image3D.contentType = image3D.type;
-            products.image3D.path = modelPath; // Lưu đường dẫn đến file 3D model
         }
+
         //
         await products.save();
         res.status(201).send({

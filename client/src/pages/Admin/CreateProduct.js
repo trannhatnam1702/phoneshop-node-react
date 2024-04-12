@@ -48,7 +48,7 @@ const CreateProduct = () => {
             productData.append('image', image);
             productData.append('image3D', image3D);
             productData.append('category', category);
-            const { data } = axios.post(`${process.env.REACT_APP_API}/api/v1/product/create-product`, productData);
+            const { data } = await axios.post(`${process.env.REACT_APP_API}/api/v1/product/create-product`, productData);
             if (data?.success) {
                 toast.error(data?.message);
             } else {
@@ -95,7 +95,7 @@ const CreateProduct = () => {
                                 <div className='mb-3'>
                                     <label className='btn btn-outline-secondary col-md-12'>
                                         {image3D ? image3D.name : 'Upload 3D Model'}
-                                        <input type='file' name='image3D' accept='/model/*' onChange={(e) => setImage3D(e.target.files[0])} hidden></input>
+                                        <input type='file' name='image3D' accept='file' onChange={(e) => setImage3D(e.target.files[0])} hidden></input>
                                     </label>
                                 </div>
                                 <div className='mb-3'>
