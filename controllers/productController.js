@@ -22,7 +22,7 @@ var gateway = new braintree.BraintreeGateway({
 export const createProductController = async (req, res) => {
     try {
         const { name, slug, description, price, category, quantity, shipping } = req.fields;
-        const { image,image3D} = req.files;
+        const { image, image3D } = req.files;
         switch (true) {
             case !name:
                 return res.status(500).send({ error: "Name is Required!" });
@@ -134,26 +134,36 @@ export const productImageController = async (req, res) => {
 
 export const productImage3DController = async (req, res) => {
     try {
-        //productId=pid
-        // Xác định loại nội dung của file GLB
         const products = await product.findById(req.params.pid).select("image3D");
 
-
-        if (products.image3D.data) {
-            res.set('Content-type', products.image3D.contentType);
-            return res.status(200).send(products.image3D.data);
+        if (!products) {
+            return res.status(404).json({ error: "Product not found" });
         }
+
+        if (!products.image3D) {
+            return res.status(404).json({ error: "3D model not found for this product" });
+        }
+        if (!products.image3D.path) {
+            return res.status(500).json({ error: "Path to 3D model is undefined" });
+        }
+        const absolutePath = path.resolve(products.image3D.path);
+
+        // Đặt loại nội dung của phản hồi
+        res.set('Content-Type', 'model/gltf-binary');
+
+        // Trả về nội dung của tệp model 3D
+        return res.status(200).sendFile(absolutePath);
     } catch (error) {
         console.log(error);
         res.status(500).send({
             success: false,
-            message: 'Error in Getting Image of Product!',
+            message: 'Error in Getting Image 3D of Product!',
             error: error.message,
         });
     }
 };
 
-export const upload3DModelController = async(req,res) => {
+export const upload3DModelController = async (req, res) => {
     try {
         // Tạo thư mục lưu trữ nếu chưa tồn tại
         const uploadDir = 'uploads/';
@@ -172,7 +182,7 @@ export const upload3DModelController = async(req,res) => {
         fs.writeFileSync(modelPath, fs.readFileSync(model.path));
 
         // Thực hiện các thao tác lưu trữ khác nếu cần
-        
+
         // Trả về kết quả thành công
         res.status(201).json({ success: true, message: '3D model uploaded successfully', modelPath });
     } catch (error) {
@@ -201,7 +211,7 @@ export const deleteProductController = async (req, res) => {
 export const updateProductController = async (req, res) => {
     try {
         const { name, slug, description, price, category, quantity, shipping } = req.fields;
-        const { image,image3D } = req.files;
+        const { image, image3D } = req.files;
 
         switch (true) {
             case !name:
@@ -220,7 +230,7 @@ export const updateProductController = async (req, res) => {
             case image && image.size > 1000000:
                 return res.status(500).send({ error: "Image is Required and should be less than 1MB!" });
         }
-        
+
         const products = await product.findByIdAndUpdate(req.params.pid,
             { ...req.fields, slug: slugify(name) }, { new: true });
         if (image) {
@@ -244,7 +254,7 @@ export const updateProductController = async (req, res) => {
         res.status(500).send({
             success: false,
             message: 'Error in Updating Product!',
-            error: error.message,   
+            error: error.message,
         });
     }
 };
