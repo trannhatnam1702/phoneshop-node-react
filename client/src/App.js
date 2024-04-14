@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Model3d from "./pages/Model3d";
 import PageNotFound from "./pages/PageNotFound";
 import Register from "./pages/Auth/Register";
 import Login from "./pages/Auth/Login";
@@ -33,6 +34,7 @@ function App() {
       <Routes>
         <Route path='/' element={<HomePage />} />
         <Route path='/product/:slug' element={<ProductDetails />} />
+        <Route path='/product/model3d/:id' element={<Model3d />} />
         <Route path='/categories' element={<Categories />} />
         <Route path='/category/:slug' element={<CategoryList />} />
         <Route path='/search' element={<Search />} />
