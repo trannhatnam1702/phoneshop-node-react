@@ -79,7 +79,7 @@ export const createProductController = async (req, res) => {
 
 export const getProductController = async (req, res) => {
     try {
-        const products = await product.find({}).populate('category').select("-image").limit(12).sort({ createdAt: -1 });
+        const products = await product.find({}).populate('category').select("-image -image3D").limit(12).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             message: 'Get all Products Successfully!',
@@ -98,7 +98,7 @@ export const getProductController = async (req, res) => {
 
 export const singleProductController = async (req, res) => {
     try {
-        const products = await product.findOne({ slug: req.params.slug }).select("-image").populate('category');
+        const products = await product.findOne({ slug: req.params.slug }).select("-image -image3D").populate('category');
         res.status(200).send({
             success: true,
             message: 'Get single Product Successfully!',
@@ -193,7 +193,7 @@ export const upload3DModelController = async (req, res) => {
 
 export const deleteProductController = async (req, res) => {
     try {
-        await product.findByIdAndDelete(req.params.pid).select("-image");
+        await product.findByIdAndDelete(req.params.pid).select("-image -image3D");
         res.status(200).send({
             success: true,
             message: 'Delete Product Successfully!',
@@ -301,7 +301,7 @@ export const productListController = async (req, res) => {
     try {
         const perPage = 6;
         const page = req.params.page ? req.params.page : 1;
-        const products = await product.find({}).select("-image").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
+        const products = await product.find({}).select("-image -image3D").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             products,
@@ -324,7 +324,7 @@ export const searchProductController = async (req, res) => {
                 { name: { $regex: keyword, $options: "i" } },
                 { description: { $regex: keyword, $options: "i" } },
             ]
-        }).select("-image");
+        }).select("-image -image3D");
         res.json(results);
     } catch (error) {
         console.log(error);
@@ -342,7 +342,7 @@ export const relatedProductController = async (req, res) => {
         const products = await product.find({
             category: cid,
             _id: { $ne: pid }
-        }).select('-image').limit(3).populate('category');
+        }).select('-image -image3D').limit(3).populate('category');
         res.status(200).send({
             success: true,
             products,
@@ -360,7 +360,7 @@ export const relatedProductController = async (req, res) => {
 export const productCategoryController = async (req, res) => {
     try {
         const category = await categoryModel.findOne({ slug: req.params.slug });
-        const products = await product.find({ category }).populate('category').select("-image");
+        const products = await product.find({ category }).populate('category').select("-image -image3D");
         res.status(200).send({
             success: true,
             category,
