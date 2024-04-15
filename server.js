@@ -7,6 +7,10 @@ import Author from './routes/Author.js';
 import Category from './routes/Category.js';
 import Product from './routes/Product.js';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import axios from 'axios';
 
 const app = express();
 
@@ -23,6 +27,7 @@ app.use(morgan('dev'))
 app.use('/api/v1/auth', Author);
 app.use('/api/v1/category', Category);
 app.use('/api/v1/product', Product);
+
 
 app.get('/', (req, res) => {
     res.send('Hello');
