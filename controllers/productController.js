@@ -206,7 +206,7 @@ export const upload3DModelController = async (req, res) => {
 
 export const deleteProductController = async (req, res) => {
     try {
-        await product.findByIdAndDelete(req.params.pid).select("-image -image3D");
+        await product.findByIdAndDelete(req.params.pid).select("-image");
         res.status(200).send({
             success: true,
             message: 'Delete Product Successfully!',
@@ -314,7 +314,7 @@ export const productListController = async (req, res) => {
     try {
         const perPage = 6;
         const page = req.params.page ? req.params.page : 1;
-        const products = await product.find({}).select("-image -image3D").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
+        const products = await product.find({}).select("-image").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             products,
@@ -337,7 +337,7 @@ export const searchProductController = async (req, res) => {
                 { name: { $regex: keyword, $options: "i" } },
                 { description: { $regex: keyword, $options: "i" } },
             ]
-        }).select("-image -image3D");
+        }).select("-image");
         res.json(results);
     } catch (error) {
         console.log(error);
