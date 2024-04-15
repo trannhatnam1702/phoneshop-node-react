@@ -79,7 +79,10 @@ export const createProductController = async (req, res) => {
 
 export const getProductController = async (req, res) => {
     try {
-        const products = await product.find({}).populate('category').select("-image -image3D").limit(12).sort({ createdAt: -1 });
+        const products = await product.find({}).populate({
+            path: 'category',
+            select: '-image',
+        }).select("-image -image3D").limit(12).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             message: 'Get all Products Successfully!',
@@ -98,7 +101,17 @@ export const getProductController = async (req, res) => {
 
 export const singleProductController = async (req, res) => {
     try {
-        const products = await product.findOne({ slug: req.params.slug }).select("-image -image3D").populate('category');
+        const products = await product.findOne({ slug: req.params.slug }).select("-image -image3D").populate({
+            path: 'category',
+            select: '-image',
+        });
+        if (!products) {
+            // Trả về lỗi 404 nếu không tìm thấy sản phẩm
+            return res.status(404).send({
+                success: false,
+                message: 'Product not found.',
+            });
+        }
         res.status(200).send({
             success: true,
             message: 'Get single Product Successfully!',
@@ -342,7 +355,10 @@ export const relatedProductController = async (req, res) => {
         const products = await product.find({
             category: cid,
             _id: { $ne: pid }
-        }).select('-image -image3D').limit(3).populate('category');
+        }).select('-image -image3D').limit(3).populate({
+            path: 'category',
+            select: '-image',
+        });
         res.status(200).send({
             success: true,
             products,
@@ -360,7 +376,10 @@ export const relatedProductController = async (req, res) => {
 export const productCategoryController = async (req, res) => {
     try {
         const category = await categoryModel.findOne({ slug: req.params.slug });
-        const products = await product.find({ category }).populate('category').select("-image -image3D");
+        const products = await product.find({ category }).ppopulate({
+            path: 'category',
+            select: '-image',
+        }).select("-image -image3D");
         res.status(200).send({
             success: true,
             category,

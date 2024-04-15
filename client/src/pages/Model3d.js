@@ -29,6 +29,13 @@ const Model3d = () => {
                     const object = gltf.scene;
                     scene.add(object);
 
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                    scene.add(ambientLight);
+
+                    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);
+                    directionalLight.position.set(3, 10, 3);
+                    scene.add(directionalLight);
+
                     const boundingBox = new THREE.Box3().setFromObject(object);
                     const center = boundingBox.getCenter(new THREE.Vector3());
                     const size = boundingBox.getSize(new THREE.Vector3());
