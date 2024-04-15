@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema({
     category: { type: mongoose.ObjectId, ref: 'Category', require: true, },
     quantity: { type: Number, require: true, },
     image: { data: Buffer, contentType: String },
+    image3D: { data: Buffer, contentType: String, path: String},
     shipping: { type: Boolean, }
 }, { timestamps: true })
 

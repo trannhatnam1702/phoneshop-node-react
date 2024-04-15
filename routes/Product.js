@@ -1,6 +1,6 @@
 import express from "express";
 import { isAdmin, requireSignIn } from "../middlewares/authMidw.js";
-import { brainTreePaymentController, braintreeTokenController, countProductController, createProductController, deleteProductController, getProductController, productCategoryController, productFiltersController, productImageController, productListController, relatedProductController, searchProductController, singleProductController, updateProductController } from "../controllers/productController.js";
+import { brainTreePaymentController, braintreeTokenController, countProductController, createProductController, deleteProductController, getProductController, productCategoryController, productFiltersController, productImage3DController, productImageController, productListController, relatedProductController, searchProductController, singleProductController, updateProductController } from "../controllers/productController.js";
 import formidable from 'express-formidable';
 
 
@@ -11,6 +11,7 @@ router.put('/update-product/:pid', requireSignIn, isAdmin, formidable(), updateP
 router.get('/get-product', getProductController);
 router.get('/get-product/:slug', singleProductController); //get single product
 router.get('/image-product/:pid', productImageController);
+router.get('/image3d-product/:pid', productImage3DController); //3d
 router.delete('/delete-product/:pid', deleteProductController);
 router.post('/product-filters', productFiltersController);
 router.get('/count-product', countProductController);

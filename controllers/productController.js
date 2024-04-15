@@ -6,6 +6,8 @@ import userModel from '../models/user.js';
 import fs from 'fs';
 import braintree from "braintree";
 import dotenv from "dotenv";
+import { modelNames } from 'mongoose';
+import path from 'path';
 
 dotenv.config();
 
@@ -16,11 +18,11 @@ var gateway = new braintree.BraintreeGateway({
     privateKey: process.env.BRAINTREE_PRIVATE_KEY,
 });
 
+//Thêm
 export const createProductController = async (req, res) => {
     try {
         const { name, slug, description, price, category, quantity, shipping } = req.fields;
-        const { image } = req.files;
-
+        const { image, image3D } = req.files;
         switch (true) {
             case !name:
                 return res.status(500).send({ error: "Name is Required!" });
@@ -41,6 +43,24 @@ export const createProductController = async (req, res) => {
             products.image.data = fs.readFileSync(image.path);
             products.image.contentType = image.type;
         }
+        //update file 3D model
+        if (image3D) {
+            const uploadDir = 'uploads/3dmodels'; // Thay đổi đường dẫn này thành thư mục bạn muốn lưu trữ trên máy chủ
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+            const modelName = `${Date.now()}_${image3D.name}`;
+            const modelPath = path.join(uploadDir, modelName);
+            fs.copyFileSync(image3D.path, modelPath);
+            products.image3D = {
+                path: modelPath,
+                contentType: image3D.type
+            };
+            // Xóa tệp tạm sau khi đã sao chép
+            fs.unlinkSync(image3D.path);
+        }
+
+        //
         await products.save();
         res.status(201).send({
             success: true,
@@ -59,7 +79,7 @@ export const createProductController = async (req, res) => {
 
 export const getProductController = async (req, res) => {
     try {
-        const products = await product.find({}).populate('category').select("-image").limit(12).sort({ createdAt: -1 });
+        const products = await product.find({}).populate('category').select("-image -image3D").limit(12).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             message: 'Get all Products Successfully!',
@@ -78,7 +98,7 @@ export const getProductController = async (req, res) => {
 
 export const singleProductController = async (req, res) => {
     try {
-        const products = await product.findOne({ slug: req.params.slug }).select("-image").populate('category');
+        const products = await product.findOne({ slug: req.params.slug }).select("-image -image3D").populate('category');
         res.status(200).send({
             success: true,
             message: 'Get single Product Successfully!',
@@ -112,9 +132,68 @@ export const productImageController = async (req, res) => {
     }
 };
 
+export const productImage3DController = async (req, res) => {
+    try {
+        const products = await product.findById(req.params.pid).select("image3D");
+
+        if (!products) {
+            return res.status(404).json({ error: "Product not found" });
+        }
+
+        if (!products.image3D) {
+            return res.status(404).json({ error: "3D model not found for this product" });
+        }
+        if (!products.image3D.path) {
+            return res.status(500).json({ error: "Path to 3D model is undefined" });
+        }
+        const absolutePath = path.resolve(products.image3D.path);
+
+        // Đặt loại nội dung của phản hồi
+        res.set('Content-Type', 'model/gltf-binary');
+
+        // Trả về nội dung của tệp model 3D
+        return res.status(200).sendFile(absolutePath);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success: false,
+            message: 'Error in Getting Image 3D of Product!',
+            error: error.message,
+        });
+    }
+};
+
+export const upload3DModelController = async (req, res) => {
+    try {
+        // Tạo thư mục lưu trữ nếu chưa tồn tại
+        const uploadDir = 'uploads/';
+        const contentType = 'model/gltf-binary'; // Ví dụ: đây là loại nội dung của file GLB
+
+        // Cập nhật loại nội dung trong cơ sở dữ liệu
+        await product.findByIdAndUpdate(req.params.pid, { 'image3D.contentType': contentType });
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        // Lưu trữ file 3D model
+        const { model } = req.files;
+        const modelName = `${Date.now()}_${model.name}`;
+        const modelPath = path.join(uploadDir, modelName);
+        fs.writeFileSync(modelPath, fs.readFileSync(model.path));
+
+        // Thực hiện các thao tác lưu trữ khác nếu cần
+
+        // Trả về kết quả thành công
+        res.status(201).json({ success: true, message: '3D model uploaded successfully', modelPath });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Failed to upload 3D model', error: error.message });
+    }
+};
+
 export const deleteProductController = async (req, res) => {
     try {
-        await product.findByIdAndDelete(req.params.pid).select("-image");
+        await product.findByIdAndDelete(req.params.pid).select("-image -image3D");
         res.status(200).send({
             success: true,
             message: 'Delete Product Successfully!',
@@ -132,7 +211,7 @@ export const deleteProductController = async (req, res) => {
 export const updateProductController = async (req, res) => {
     try {
         const { name, slug, description, price, category, quantity, shipping } = req.fields;
-        const { image } = req.files;
+        const { image, image3D } = req.files;
 
         switch (true) {
             case !name:
@@ -157,6 +236,12 @@ export const updateProductController = async (req, res) => {
         if (image) {
             products.image.data = fs.readFileSync(image.path);
             products.image.contentType = image.type;
+        }
+        if (image3D) {
+            // Lưu đường dẫn của tệp 3D model vào cơ sở dữ liệu
+            products.image3D.path = modelPath; // Sử dụng biến modelPath từ hàm upload3DModelController
+            // Cập nhật thông tin về tệp 3D model trong cơ sở dữ liệu
+            products.image3D.contentType = image3D.type; // Thay image3D.type bằng loại tệp 3D model phù hợp
         }
         await products.save();
         res.status(201).send({
@@ -216,7 +301,7 @@ export const productListController = async (req, res) => {
     try {
         const perPage = 6;
         const page = req.params.page ? req.params.page : 1;
-        const products = await product.find({}).select("-image").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
+        const products = await product.find({}).select("-image -image3D").skip((page - 1) * perPage).limit(perPage).sort({ createdAt: -1 });
         res.status(200).send({
             success: true,
             products,
@@ -239,7 +324,7 @@ export const searchProductController = async (req, res) => {
                 { name: { $regex: keyword, $options: "i" } },
                 { description: { $regex: keyword, $options: "i" } },
             ]
-        }).select("-image");
+        }).select("-image -image3D");
         res.json(results);
     } catch (error) {
         console.log(error);
@@ -257,7 +342,7 @@ export const relatedProductController = async (req, res) => {
         const products = await product.find({
             category: cid,
             _id: { $ne: pid }
-        }).select('-image').limit(3).populate('category');
+        }).select('-image -image3D').limit(3).populate('category');
         res.status(200).send({
             success: true,
             products,
@@ -275,7 +360,7 @@ export const relatedProductController = async (req, res) => {
 export const productCategoryController = async (req, res) => {
     try {
         const category = await categoryModel.findOne({ slug: req.params.slug });
-        const products = await product.find({ category }).populate('category').select("-image");
+        const products = await product.find({ category }).populate('category').select("-image -image3D");
         res.status(200).send({
             success: true,
             category,
