@@ -11,7 +11,7 @@ router.put('/update-product/:pid', requireSignIn, isAdmin, formidable(), updateP
 router.get('/get-product', getProductController);
 router.get('/get-product/:slug', singleProductController); //get single product
 router.get('/image-product/:pid', productImageController);
-router.delete('/delete-product/:pid', deleteProductController);
+router.delete('/delete-product/:pid', requireSignIn, isAdmin, deleteProductController);
 router.post('/product-filters', productFiltersController);
 router.get('/count-product', countProductController);
 router.get('/product-list/:page', productListController); //product per page
